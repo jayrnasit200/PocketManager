@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
         <div class="col-md-12">
             @if(session()->get('status'))
@@ -16,41 +16,43 @@
             @endif
             <div class="card">
                 <div class="card-header">{{ __('Dashboard') }}
-                    <a href="{{ url('/createbook') }}" class="btn btn-success float-end">Create New Book</a>
                 </div>
 
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row justify-content-center">
+                        <div class="col-md-2 ">
+                            <div class="m-2 alert alert-primary text-center">
+                                <label>Account Balance</label>
+                                <h1><b>{{Auth()->user()->account}}</b></h1>
+                            </div>
+                        </div>  
+                        <div class="col-md-2 ">
+                            <div class="m-2 alert alert-danger text-center">
+                                <label>Pending Amount</label>
+                                <h1><b>{{$pending}}</b></h1>
+                            </div>
+                        </div> 
+                        <div class="col-md-2 ">
+                            <div class="m-2 alert alert-success text-center">
+                                <label>Total Profit</label>
+                                <h1><b>{{$profit}}</b></h1>
+                            </div>
+                        </div> 
+                        <div class="col-md-2 ">
+                            <div class="m-2 alert alert-warning text-center">
+                                <label>Total Withdrawal</label>
+                                <h1><b>{{$Withdrawal}}</b></h1>
+                            </div>
+                        </div>  
+                        <div class="col-md-2 ">
+                            <div class="m-2 alert alert-secondary text-center">
+                                <label>Total Deposit</label>
+                                <h1><b>{{$deposit}}</b></h1>
+                            </div>
+                        </div>
                         
                     </div>
-                    <table id="example" class="table hover multiple-select-row data-table-export nowrap">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Days</th>
-                                <th>EMI</th>
-                                <th>Amount</th>
-                                <th>Received</th>
-                                <th>Left</th>
-                                <th> </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($books as $key => $valu)
-                            <tr>
-                                <td>{{$key+1}}</td>
-                                <td>{{$valu->name}}</td>
-                                <td>{{$valu->day}}</td>
-                                <td>{{$valu->emi}}</td>
-                                <td>{{$valu->amount}}</td>
-                                <td>{{$valu->amount_received}}</td>
-                                <td>{{$valu->amount-$valu->amount_received}}</td>
-                                <td><a href="{{url('book')}}?id={{$valu->id}}" class="btn btn-primary">open</a></td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    
                 </div>
             </div>
         </div>

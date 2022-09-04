@@ -27,11 +27,20 @@ class HomeController extends Controller
      */
     public function index()
     {
+        $data['pending']= DB::table('books')->sum(DB::raw('amount - amount_received'));
+        $data['profit']= DB::table('books')->sum(DB::raw('amount_received'));
+        $data['Withdrawal']= DB::table('_account_statement')->where('type', 'Withdraw')->sum(DB::raw('amount'));
+        $data['deposit']= DB::table('_account_statement')->where('type', 'Credit')->sum(DB::raw('amount'));
+        // print_r($data['Withdrawal']);
+        return view('home')->with($data);
+    }
+    public function books()
+    {
         $data['books']= DB::table('books')->get()->all();
         // echo '<pre>';
         // print_r($data['books']);
         // exit;
-        return view('home')->with($data);
+        return view('books')->with($data);
     }
     public function createbook()
     {
@@ -120,7 +129,77 @@ class HomeController extends Controller
 
     public function account()
     {
-        return view('account');
+        $payment = DB::table('_account_statement')->orderBy('created_at', 'DESC')->get();
+        $data= [];
+        foreach ($payment as $key => $value) {
+                $date=$value->created_at;
+                $createDate = new DateTime($date);
+                $date = $createDate->format('d-m-Y');
+            if (!empty($value->book_id)) {
+                
+                $book = DB::table('books')->where('id', $value->book_id)->get()->first();
+                
+                $data[$key]= array(
+                    'id' => $value->id, 
+                    'type' => $value->type.'('.$book->name.','.$book->number.')', 
+                    'amount' => $value->amount, 
+                    'book_id' => $value->id, 
+                    'created_at' => $date, 
+                );
+               
+                
+            }else{
+                $data[$key]= array(
+                    'id' => $value->id, 
+                    'type' => $value->type, 
+                    'amount' => $value->amount, 
+                    'book_id' => $value->id, 
+                    'created_at' => $date, 
+                );
+            }
+        }
+        // print_r($data);
+        $pay['payment']=$data;
+        return view('account')->with($pay);
+    }
+    public function update_fund($amount,$type)
+    {
+        $cdate = date("Y-m-d"). date("h:i:s");
+        $cfund= Auth()->user()->account;
+        if($type == 'deposit'){
+            DB::table('users')->where('id', Auth()->user()->id)->update([
+                'account' => $cfund+$amount,
+                ]);
+                DB::table('_account_statement')->insert([
+                    'type' => 'Credit',
+                    'amount' => $amount,
+                    'created_at' => $cdate,
+                    'updated_at' => $cdate,
+                    ]);
+            return response()->json([
+                'success' => 'You amount '.$amount.' is Credited.',
+            ]);
+        }else{
+            if ($cfund>=$amount) {
+                
+                DB::table('users')->where('id', Auth()->user()->id)->update([
+                    'account' => $cfund-$amount,
+                    ]);
+                DB::table('_account_statement')->insert([
+                    'type' => 'Withdraw',
+                    'amount' => $amount,
+                    'created_at' => $cdate,
+                    'updated_at' => $cdate,
+                    ]);
+                    return response()->json([
+                        'success' => 'You amount '.$amount.' is Withdrawal.',
+                    ]);
+            }else{
+                return response()->json([
+                    'error' => 'Do Not Have a Sufficient Balance.',
+                ]);
+            }
+        }
     }
     
 }
